@@ -1,70 +1,97 @@
-# Getting Started with Create React App
+# Docker + Github Action
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> 인프런 <따라하며 배우는 도커 CI>강의 실습을 위한 repo입니다.
 
-## Available Scripts
+강의에서는 무료라며 `Travis CI`를 사용하지만 유료플랜으로 바뀌었고 다시 쓰지 않을것 같아 연습삼아 Github Action으로 대체했다.  
+CRA로 생성한 기본 리액트 앱뿐이라 큰 효용은 없지만 익숙해지기 위해 `npm` 대신 `yarn berry`로 대체했다.  
+이 문서도 굳이 작성할 필요는 없었지만 md에 익숙해지기 위해 그냥 써봤다.
 
-In the project directory, you can run:
+## Hello World
 
-### `yarn start`
+1. 프로젝트 디렉토리 생성 && yarn berry 적용
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+   ```zsh
+   mkdir docker-react-app && cd docker-react-app
+   yarn init
+   yarn set version berry
+   ```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+2. CRA로 리액트 앱 생성
 
-### `yarn test`
+   ```zsh
+   yarn create react-app docker-react-app
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 도커 개발환경 세팅
 
-### `yarn build`
+1. Dockerfile.dev 작성
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+   ```dockerfile
+   FROM node:alpine
+   WORKDIR /usr/src/app
+   COPY ./ ./
+   RUN yarn set version berry
+   RUN yarn
+   CMD ["yarn", "start"]
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   > 굳이 yarn을 한번 더 실행해줘야할까라는 의문이 들긴 하지만 컨테이너를 생성했을때 메세지가 길어지는게 괜히찝찝해서 때문에 이미지 만들때 미리 실행했다.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. docker-compose.yml 작성
 
-### `yarn eject`
+   ```yml
+   version: "3"
+   services:
+   react:
+     build:
+       context: .
+       dockerfile: Dockerfile.dev
+     ports:
+       - "3000:3000"
+     volumes:
+       - ./:/usr/src/app
+     stdin_open: true
+   tests:
+     build:
+       context: .
+       dockerfile: Dockerfile.dev
+     volumes: -./:usr/src/app
+     command: ["yarn", "test"]
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. 컨테이너 생성
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```zsh
+   docker-compose up
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 빌드&배포
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+리액트 앱을 빌드하고 nginx 컨테이너 위에 이미지를 돌린다.
 
-## Learn More
+1. Dockerfile작성 및 이미지 빌드
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+   이미지 사이즈를 줄이기 위해 멀티스테이지 빌드 활용.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+   ```dockerfile
+   FROM node:alpine as builder
+   WORKDIR "/usr/src/app"
+   COPY package.json .
+   COPY yarn.lock .
+   RUN yarn install
+   COPY ./ ./
+   RUN yarn build
 
-### Code Splitting
+   FROM nginx
+   COPY --from=builder /usr/src/app/build /usr/share/nginx/html
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+   ```zsh
+   docker build -t docker-react-app ./
+   ```
 
-### Analyzing the Bundle Size
+2. 컨테이너 실행
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+   ```zsh
+   docker run -it -p 8080:80 docker-react-app
+   ```
