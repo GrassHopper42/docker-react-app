@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the Docker image
-        run: echo "Start Creating an image with Dockerfile" && \
+        run: echo "Start Creating an image with Dockerfile" &&
           docker build . --file Dockerfile.dev --tag docker-react-app
 
   test:
