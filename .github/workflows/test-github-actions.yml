@@ -12,19 +12,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Build Message
+        run: echo "Start Creating an image with Dockerfile"
       - name: Build the Docker image
-        run: echo "Start Creating an image with Dockerfile" &&
-          docker build . --file Dockerfile.dev --tag docker-react-app
-
-  test:
-    needs: build
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
+        run: docker build . --file Dockerfile.dev --tag docker-react-app
       - name: Test
         run: docker run docker-react-app yarn test -- --coverage
-
-      - name: Test Complete
+      - name: Test Complete Message
         run: echo "Test Success"
