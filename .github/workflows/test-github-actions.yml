@@ -16,11 +16,11 @@ jobs:
       - name: Test Complete Message
         run: echo "Test Success"
 
-  build:
-    needs: tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+      # build:
+      #   needs: tests
+      #   runs-on: ubuntu-latest
+      #   steps:
+      #     - uses: actions/checkout@v2
       - name: Build Message
         run: echo "Start Creating an image with Dockerfile"
       - name: Build the Docker image
