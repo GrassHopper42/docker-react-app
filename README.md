@@ -216,3 +216,6 @@ jobs:
          - name: Build the Docker image
            run: docker build . --file Dockerfile.dev --tag docker-react-app
    ```
+
+   > 에러가 발생할때와 아닐때, jobs를 두가지로 나눴을때와 합쳤을 때를 테스트 해본 결과 합쳤을때가 확실히 빠르다. `actions/checkout@v2`에서 소스를 받아오는 과정때문에 그런 것 같은데 이것도 자세히 알아봐야겠다.
+   > **결론: 실행환경이 다르지 않은 이상은 jobs를 구분할 필요가 없다.**
