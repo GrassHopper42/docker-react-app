@@ -17,6 +17,6 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file Dockerfile.dev --tag docker-react-app
       - name: Test
-        run: docker run docker-react-app yarn test
+        run: docker run -it docker-react-app yarn test
       - name: Test Complete Message
         run: echo "Test Success"
