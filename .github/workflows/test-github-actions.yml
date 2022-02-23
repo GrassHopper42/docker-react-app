@@ -34,7 +34,7 @@ jobs:
 
       # 설치된 yarn을 통해 패키지를 설치합니다.
       - name: Install dependencies
-        run: yarn install
+        run: yarn
 
       # 테스트를 수행합니다.
       - name: Run tests
