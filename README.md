@@ -95,3 +95,45 @@ CRA로 생성한 기본 리액트 앱뿐이라 큰 효용은 없지만 익숙해
    ```zsh
    docker run -it -p 8080:80 docker-react-app
    ```
+
+## Github Action 활용해서 CI환경 구축
+
+> 앞에서 말했듯 강의는 `Travis CI`를 활용했지만 나는 `Github Actions`를 활용해 유사한 환경을 구축했다.
+> 그 과정에서 있었던 Trouble Shooting도 같이 적는다.
+
+1. Github Action 생성
+
+   Github Action을 생성하는 방법은 두가지다.
+
+   - 자체적으로 레포 최상위에 `.github/workflows`디렉토리를 생성하고 그 아래 `yml`파일을 만들어 주거나
+
+   - Github Repository에 Actions탭에서 Github에서 추천하는 템플릿을 이요하는 방법이다.
+
+   나는 두번째 방법에서 Docker build 템플릿을 살짝 수정해 사용했다.
+
+   ```yml
+   # .github/workflows/test-github-actions.yml
+   name: learn-github-actions
+
+   on:
+     # master 브랜치에 push나 pull_request가 발생하면 실행되도록 설정
+     push:
+       branches: [master]
+     pull_request:
+       branches: [master]
+
+   jobs:
+     build:
+       runs-on: ubuntu-latest
+
+       steps:
+         - uses: actions/checkout@v2
+         - name: Build Message
+           run: echo "Start Creating an image with Dockerfile"
+         - name: Build the Docker image
+           run: docker build . --file Dockerfile.dev --tag docker-react-app
+         - name: Test
+           run: docker run docker-react-app yarn test -- --coverage
+         - name: Test Complete Message
+           run: echo "Test Success"
+   ```
