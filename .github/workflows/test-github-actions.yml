@@ -17,7 +17,7 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file Dockerfile.dev --tag docker-react-app
       - name: Docker container run
-        run: docker run docker-react-app -d yarn test
+        run: docker run -d docker-react-app yarn test
       # Node 16 버전을 사용합니다.
       - name: Install node
         uses: actions/setup-node@v2
