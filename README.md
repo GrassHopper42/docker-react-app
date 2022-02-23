@@ -128,12 +128,47 @@ CRA로 생성한 기본 리액트 앱뿐이라 큰 효용은 없지만 익숙해
 
        steps:
          - uses: actions/checkout@v2
+         # image build 메세지 출력
          - name: Build Message
            run: echo "Start Creating an image with Dockerfile"
+         # Docker image Build
          - name: Build the Docker image
            run: docker build . --file Dockerfile.dev --tag docker-react-app
+         # build된 image test
          - name: Test
-           run: docker run docker-react-app yarn test -- --coverage
+           run: docker run docker-react-app yarn test
+         # Test 완료 메세지 출력
          - name: Test Complete Message
            run: echo "Test Success"
    ```
+
+   수정을 마쳤으면 오른쪽 상단에서 Start commit버튼을 눌러 commit을 해준다.  
+   바로 `Actions` 탭에 가보면 workflow에 따라 진행상황과 결과를 볼 수 있다.  
+   처음에 몇가지 오류가 발생해 수정하고 코드를 `push`했을 때 test과정에서 문제가 생겼는데, job은 step에 따라 진행되므로 이 경우 test완료 메세지는 출력되지 않는다.
+
+2. Trouble Shooting
+
+   1. 처음엔 jobs에 test를 추가해 분리해보려고 했지만 이 경우 image를 찾지 못해서 실패했다.
+
+      ```yml
+      jobs:
+        build:
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v2
+            - name: Build Message
+              run: echo "Start Creating an image with Dockerfile"
+            - name: Build the Docker image
+              run: docker build . --file Dockerfile.dev --tag docker-react-app
+        test:
+          needs: build
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v2
+            - name: Test
+              run: docker run docker-react-app yarn test
+            - name: Test Complete Message
+              run: echo "Test Success"
+      ```
+
+      이미지 빌드와 컨테이너 실행을 분리시키려면 dockerhub를 거쳐야할 것 같다. 귀찮아서 그냥 합쳤다.
