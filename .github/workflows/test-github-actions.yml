@@ -7,38 +7,20 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
-
-#       - name: Docker container run
-#         run: docker run -d docker-react-app yarn test
-#       # Node 16 버전을 사용합니다.
-#       - name: Install node
-#         uses: actions/setup-node@v2
-#         with:
-#           node-version: '16'
-#           cache: 'npm'
-
-#       # yarn을 설치합니다.
-#       - name: Install Yarn
-#         run: npm install yarn
-        
-#       - name: yarn berry
-#         run: yarn set version berry
-
-#       # 설치된 yarn을 통해 패키지를 설치합니다.
-#       - name: Install dependencies
-#         run: yarn
-
-      # 테스트를 수행합니다.
       - name: Run tests
         run: yarn test
       - name: Test Complete Message
         run: echo "Test Success"
 
+  build:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
       - name: Build Message
         run: echo "Start Creating an image with Dockerfile"
       - name: Build the Docker image

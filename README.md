@@ -177,3 +177,42 @@ CRA로 생성한 기본 리액트 앱뿐이라 큰 효용은 없지만 익숙해
 
       이걸 지워줬더니 문제는 해결됐지만 테스트를 성공하고 컨테이너를 빠져나오지 못해 다음 워크플로우로 진행이 안된다...  
       -it를 넣어주면 `the input device is not a TTY`오류가 떠서 자동 종료된다.
+
+   3. 컨테이너 무한루프
+
+      멘토님께 여쭤보고 얻은 결론은
+
+      > **어차피 `Github Action`도 가상환경인데 굳이 컨테이너 두개를 거쳐서 테스트할 필요까진 없겠다.**
+
+      테스트를 먼저 진행하고 테스트가 완료되면 이미지를 빌드하는 방식으로 수정했다.
+      덤으로 tests와 build로 jobs를 분리시켜서 test와 build workflow를 변경해보았다. 기능적인 부분은 좀 더 알아봐야겠지만 시도와 경험에 의의를 뒀다.
+
+      ```yml
+      name: learn-github-actions
+
+      on:
+        push:
+          branches: [master]
+        pull_request:
+          branches: [master]
+
+      jobs:
+        tests:
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v2
+            - name: Run tests
+              run: yarn test
+            - name: Test Complete Message
+              run: echo "Test Success"
+
+        build:
+          needs: tests
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v2
+            - name: Build Message
+              run: echo "Start Creating an image with Dockerfile"
+            - name: Build the Docker image
+              run: docker build . --file Dockerfile.dev --tag docker-react-app
+      ```
